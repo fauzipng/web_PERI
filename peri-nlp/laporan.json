@@ -27,6 +27,5 @@
       ]
     ]
   },
-  "akurasi_lexicon_pembanding": 0.3806,
   "catatan": "Dilatih pada ulasan produk Tokopedia (PRDECT-ID); belum diuji pada data PERI."
 }

@@ -1,5 +1,4 @@
-"""Preprocessing teks Bahasa Indonesia: case folding -> cleaning -> normalisasi -> tokenisasi
--> stopword -> stemming (Sastrawi bila terpasang, jika tidak stemmer ringan)."""
+
 import re
 
 SLANG = {"gak": "tidak", "nggak": "tidak", "ga": "tidak", "tdk": "tidak", "bgt": "banget",

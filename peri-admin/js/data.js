@@ -442,4 +442,14 @@ let guestbook = [
     tanggal: "2026-09-28",
     dibaca: true,
   },
+  {
+    id: 31,
+    nama: "Saragi",
+    email: "-",
+    wa: "081234509030",
+    kategori: "kritik",
+    pesan: "Programnya bagus banget.",
+    tanggal: "2026-09-28",
+    dibaca: true,
+  },
 ];

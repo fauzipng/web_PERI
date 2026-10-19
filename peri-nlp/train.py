@@ -1,6 +1,4 @@
-"""Latih dan evaluasi Naive Bayes dari data/dataset.csv (kolom: teks, label).
-Jalankan dari folder peri-nlp:  python train.py
-"""
+
 import json, sys
 from pathlib import Path
 import joblib
@@ -12,7 +10,6 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import make_pipeline
 
 from preprocessing import preprocess, bigram_analyzer, STEMMER_NAME
-from sentiment import lexicon_predict
 
 ROOT = Path(__file__).resolve().parent
 DATA, MODEL, REPORT = ROOT / "dataset.csv", ROOT / "nb_sentimen.joblib", ROOT / "laporan.json"
@@ -50,11 +47,6 @@ def main():
     cm = confusion_matrix(yte, pred, labels=labels)
     print("Confusion matrix (baris=aktual, kolom=prediksi)", labels); print(cm, "\n")
 
-    # Pembanding: baseline lexicon pada data uji yang sama (netral dihitung salah karena tak ada kelas netral)
-    lex = [lexicon_predict(t)["sentimen"] for t in Xte]
-    lex_acc = accuracy_score(yte, lex)
-    print(f"Baseline lexicon: akurasi {lex_acc:.3f} (prediksi netral dihitung salah) vs Naive Bayes {acc:.3f}\n")
-
     # Contoh kesalahan untuk dianalisis
     wrong = Xte[pred != yte].head(8)
     print("Contoh salah prediksi:")
@@ -67,7 +59,7 @@ def main():
         "jumlah_data": len(df), "data_latih": len(Xtr), "data_uji": len(Xte), "konfigurasi": {"fitur": best[0], "alpha": best[1]},
         "cv_f1_macro": round(best_f1, 4), "accuracy": round(acc, 4), "precision_macro": round(p, 4),
         "recall_macro": round(r, 4), "f1_macro": round(f, 4), "confusion_matrix": {"label": labels, "nilai": cm.tolist()},
-        "akurasi_lexicon_pembanding": round(lex_acc, 4), "catatan": "Dilatih pada ulasan produk Tokopedia (PRDECT-ID); belum diuji pada data PERI."},
+        "catatan": "Dilatih pada ulasan produk Tokopedia (PRDECT-ID); belum diuji pada data PERI."},
         indent=2, ensure_ascii=False), encoding="utf-8")
     print(f"\nModel: {MODEL}\nLaporan: {REPORT}")
 

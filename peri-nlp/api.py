@@ -1,7 +1,4 @@
-"""API sentimen untuk halaman Buku Tamu admin.
-Jalankan (dari folder peri-nlp):  python api.py   -> http://127.0.0.1:5000
-Butuh nb_sentimen.joblib (hasil python train.py).
-"""
+
 from pathlib import Path
 import joblib
 from flask import Flask, jsonify, request
