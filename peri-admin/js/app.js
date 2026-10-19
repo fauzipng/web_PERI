@@ -1,11 +1,3 @@
-// ============================================================
-// Logika interaktif untuk seluruh halaman admin PERI (prototipe).
-// Semua perubahan data hanya tersimpan di memori (array di data.js)
-// dan akan kembali ke kondisi awal setiap kali halaman dimuat ulang.
-// Pada tahap implementasi, fungsi CRUD di bawah ini digantikan
-// dengan pemanggilan fetch() ke API backend + database sungguhan.
-// ============================================================
-
 const BULAN = [
   "Jan",
   "Feb",
@@ -80,12 +72,48 @@ function renderKinerjaTable(bodyId, withRank) {
     .join("");
 }
 
+// ---------- Pesan dari form Umpan Balik (API peri-auth) ----------
+
+const API_BASE = "http://" + (location.hostname || "127.0.0.1") + ":5001";
+let pesanApiAktif = false;
+
+// Ambil pesan yang dikirim pengunjung lewat web lembaga dan taruh di atas data contoh.
+async function muatPesanApi() {
+  try {
+    const r = await fetch(API_BASE + "/api/buku-tamu", {
+      credentials: "include",
+    });
+    if (!r.ok) throw new Error("API " + r.status);
+    const { pesan } = await r.json();
+    for (let i = guestbook.length - 1; i >= 0; i--)
+      if (guestbook[i]._api) guestbook.splice(i, 1);
+    guestbook.unshift(
+      ...pesan.map((p) => ({
+        id: "api-" + p.id,
+        _api: true,
+        _dbId: p.id,
+        nama: p.nama,
+        email: p.email,
+        wa: "",
+        pesan: p.pesan,
+        kategori: p.kategori,
+        tanggal: p.tanggal,
+        dibaca: p.dibaca,
+      })),
+    );
+    pesanApiAktif = true;
+  } catch (e) {
+    pesanApiAktif = false;
+  }
+}
+
 // ---------- Dashboard ----------
 
-function initDashboard() {
+async function initDashboard() {
   const elPendaftar = document.getElementById("stat-pendaftar");
   const elProgram = document.getElementById("stat-program");
   const elPesan = document.getElementById("stat-pesan");
+  await muatPesanApi();
   if (elPendaftar) elPendaftar.textContent = registrants.length;
   if (elProgram) elProgram.textContent = programs.length;
   if (elPesan) elPesan.textContent = guestbook.filter((g) => !g.dibaca).length;
@@ -427,7 +455,7 @@ function guestbookItemHtml(g) {
         <span class="tag">${esc(KATEGORI_LABEL[g.kategori] || "Lainnya")}</span>
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;">
-        <span class="gb-meta">${g.email !== "-" ? esc(g.email) + " · " : ""}${esc(g.wa)}</span>
+        <span class="gb-meta">${[g.email !== "-" ? esc(g.email) : "", esc(g.wa)].filter(Boolean).join(" · ")}</span>
         <button class="btn btn-sm btn-toggle-baca" data-id="${g.id}">
           ${g.dibaca ? "Tandai belum dibaca" : "Tandai sudah dibaca"}
         </button>
@@ -467,8 +495,16 @@ function renderGuestbook() {
   list.innerHTML = sorted.map(guestbookItemHtml).join("");
   list.querySelectorAll(".btn-toggle-baca").forEach((btn) => {
     btn.addEventListener("click", () => {
-      const g = guestbook.find((g) => g.id === Number(btn.dataset.id));
+      const g = guestbook.find((g) => String(g.id) === btn.dataset.id);
       g.dibaca = !g.dibaca;
+      if (g._api) {
+        fetch(`${API_BASE}/api/buku-tamu/${g._dbId}/dibaca`, {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ dibaca: g.dibaca }),
+        }).catch(() => showToast("Status dibaca belum tersimpan ke server."));
+      }
       renderGuestbook();
       updateGuestbookCount();
     });
@@ -493,6 +529,7 @@ async function initBukuTamu() {
     gbFilter.sentimen = e.target.value;
     renderGuestbook();
   });
+  await muatPesanApi();
   await muatSentimenModel();
   renderGuestbook();
   updateGuestbookCount();

@@ -1,9 +1,3 @@
-// ============================================================
-// Data contoh (dummy) untuk kebutuhan prototipe.
-// Pada tahap implementasi, data ini digantikan oleh hasil
-// pemanggilan API ke backend + database sungguhan.
-// ============================================================
-
 let programs = [
   {
     id: 1,

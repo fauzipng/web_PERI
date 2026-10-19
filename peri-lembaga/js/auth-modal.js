@@ -121,6 +121,117 @@
 
   var overlay, lastFocus;
 
+  /* ---------- Hubungan ke API autentikasi (peri-auth, port 5001) ---------- */
+  var API = "http://" + (location.hostname || "127.0.0.1") + ":5001";
+  var ADMIN_URL = "../peri-admin/dashboard.html";
+
+  function api(path, method, body) {
+    return fetch(API + path, {
+      method: method,
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: body ? JSON.stringify(body) : undefined,
+    })
+      .then(function (res) {
+        return res
+          .json()
+          .catch(function () {
+            return {};
+          })
+          .then(function (data) {
+            return {
+              ok: res.ok,
+              status: res.status,
+              data: data,
+              error: data.error || "Terjadi kesalahan. Coba lagi.",
+            };
+          });
+      })
+      .catch(function () {
+        return {
+          ok: false,
+          status: 0,
+          data: {},
+          error: "Server belum aktif. Jalankan peri-auth (python app.py).",
+        };
+      });
+  }
+
+  function val(form, sel) {
+    return form.querySelector(sel).value.trim();
+  }
+
+  function setMsg(el, text, ok) {
+    el.className = "auth-msg" + (ok ? " ok" : "");
+    el.textContent = text;
+  }
+
+  // Setelah login/registrasi berhasil: admin -> web admin, pendaftar tetap di web lembaga.
+  function afterAuth(user) {
+    if (user.role === "admin") {
+      location.href = ADMIN_URL;
+      return;
+    }
+    close();
+    renderNavbar(user);
+  }
+
+  // Ganti tombol Masuk/Daftar dengan Keluar saat sudah login.
+  function renderNavbar(user) {
+    var box = document.querySelector(".navbar-actions");
+    if (!box) return;
+    box.innerHTML = "";
+    if (user.role === "admin") {
+      var panel = document.createElement("a");
+      panel.href = ADMIN_URL;
+      panel.className = "btn btn-primary";
+      panel.textContent = "Panel Admin";
+      box.appendChild(panel);
+    }
+    var out = document.createElement("a");
+    out.href = "#";
+    out.className = "btn btn-outline";
+    out.textContent = "Keluar";
+    out.title = user.email;
+    out.addEventListener("click", function (e) {
+      e.preventDefault();
+      api("/api/auth/logout", "POST").then(function () {
+        location.reload();
+      });
+    });
+    box.appendChild(out);
+  }
+
+  function restoreSession() {
+    api("/api/auth/me", "GET").then(function (r) {
+      if (r.ok) renderNavbar(r.data.user);
+    });
+  }
+
+  function resendCode(btn) {
+    var form = btn.closest("form");
+    var msg = form.querySelector(".auth-msg");
+    var email = val(form, "#auth-r-email");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setMsg(msg, "Masukkan email yang valid.");
+      return;
+    }
+    btn.disabled = true;
+    api("/api/auth/kirim-kode", "POST", { email: email }).then(function (r) {
+      setMsg(
+        msg,
+        r.ok ? "Kode verifikasi dikirim ke email Anda." : r.error,
+        r.ok,
+      );
+      setTimeout(
+        function () {
+          btn.disabled = false;
+        },
+        r.ok ? 60000 : 2000,
+      );
+    });
+  }
+
   function build() {
     if (overlay) return;
     overlay = document.createElement("div");
@@ -139,6 +250,11 @@
         show(go.getAttribute("data-go"));
         return;
       }
+      var rs = e.target.closest(".auth-resend");
+      if (rs) {
+        resendCode(rs);
+        return;
+      }
       var eye = e.target.closest("[data-eye]");
       if (eye) {
         var inp = document.getElementById(eye.getAttribute("data-eye"));
@@ -153,9 +269,32 @@
         e.preventDefault();
         var msg = form.querySelector(".auth-msg");
         var err = validate(form);
-        msg.className = "auth-msg" + (err ? "" : " ok");
-        // TODO: ganti dengan pemanggilan backend (login / registrasi) saat server sudah tersedia.
-        msg.textContent = err || "Data valid. Belum terhubung ke server.";
+        if (err) {
+          setMsg(msg, err);
+          return;
+        }
+        var type = form.getAttribute("data-form");
+        var btn = form.querySelector(".auth-submit");
+        var body =
+          type === "login"
+            ? {
+                email: val(form, "#auth-l-email"),
+                password: form.querySelector("#auth-l-pass").value,
+              }
+            : {
+                email: val(form, "#auth-r-email"),
+                kode: val(form, "#auth-r-code"),
+                password: form.querySelector("#auth-r-pass").value,
+              };
+        btn.disabled = true;
+        api("/api/auth/" + type, "POST", body).then(function (r) {
+          btn.disabled = false;
+          if (!r.ok) {
+            setMsg(msg, r.error);
+            return;
+          }
+          afterAuth(r.data.user);
+        });
       });
       form.addEventListener("input", function () {
         var m = form.querySelector(".auth-msg");
@@ -229,6 +368,8 @@
       open("register");
     }
   });
+
+  restoreSession();
 
   window.PERIAuth = { open: open, close: close };
 })();

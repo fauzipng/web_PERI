@@ -116,6 +116,12 @@
                 >
               </div>
 
+              <p
+                id="form-error"
+                role="alert"
+                style="display: none; color: #b3261e; margin: 0 0 12px"
+              ></p>
+
               <form id="feedback-form" novalidate>
                 <div class="field-row-2">
                   <div class="field">
@@ -154,27 +160,6 @@
                     </option>
                     <option value="lainnya">Lainnya</option>
                   </select>
-                </div>
-
-                <div class="field">
-                  <label>Seberapa puas kamu dengan layanan PERI?</label>
-                  <div class="rating-stars" id="rating-stars" data-value="0">
-                    <button type="button" data-star="1" aria-label="1 bintang">
-                      &#9733;
-                    </button>
-                    <button type="button" data-star="2" aria-label="2 bintang">
-                      &#9733;
-                    </button>
-                    <button type="button" data-star="3" aria-label="3 bintang">
-                      &#9733;
-                    </button>
-                    <button type="button" data-star="4" aria-label="4 bintang">
-                      &#9733;
-                    </button>
-                    <button type="button" data-star="5" aria-label="5 bintang">
-                      &#9733;
-                    </button>
-                  </div>
                 </div>
 
                 <div class="field">
@@ -240,40 +225,68 @@
     </footer>
 
     <script>
-      // Form umpan balik — validasi & rating bintang di sisi klien.
-      // Belum terhubung ke backend; saat ini hanya menampilkan pesan sukses.
+      // Form umpan balik: validasi di sisi klien, lalu dikirim ke backend (peri-auth, port 5001)
+      // dan tampil di menu Buku Tamu pada panel admin.
       (function () {
-        var starsWrap = document.getElementById("rating-stars");
-        var starButtons = starsWrap.querySelectorAll("button");
-
-        starButtons.forEach(function (btn) {
-          btn.addEventListener("click", function () {
-            var value = parseInt(btn.getAttribute("data-star"), 10);
-            starsWrap.setAttribute("data-value", value);
-            starButtons.forEach(function (b) {
-              var starVal = parseInt(b.getAttribute("data-star"), 10);
-              b.classList.toggle("active", starVal <= value);
-            });
-          });
-        });
-
+        var API = "http://" + (location.hostname || "127.0.0.1") + ":5001";
         var form = document.getElementById("feedback-form");
         var successBox = document.getElementById("form-success");
+        var errorBox = document.getElementById("form-error");
+        var submitBtn = form.querySelector('button[type="submit"]');
+
+        function tampilError(teks) {
+          errorBox.textContent = teks;
+          errorBox.style.display = teks ? "block" : "none";
+        }
 
         form.addEventListener("submit", function (e) {
           e.preventDefault();
+          successBox.classList.remove("show");
+          tampilError("");
           if (!form.checkValidity()) {
             form.reportValidity();
             return;
           }
-          // TODO: ganti bagian ini dengan pengiriman ke backend saat sudah tersedia.
-          successBox.classList.add("show");
-          form.reset();
-          starsWrap.setAttribute("data-value", 0);
-          starButtons.forEach(function (b) {
-            b.classList.remove("active");
-          });
-          successBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          submitBtn.disabled = true;
+          fetch(API + "/api/buku-tamu", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              nama: form.nama.value.trim(),
+              email: form.email.value.trim(),
+              kategori: form.kategori.value,
+              pesan: form.pesan.value.trim(),
+            }),
+          })
+            .then(function (res) {
+              return res
+                .json()
+                .catch(function () {
+                  return {};
+                })
+                .then(function (data) {
+                  if (!res.ok)
+                    throw new Error(data.error || "Pesan gagal dikirim.");
+                });
+            })
+            .then(function () {
+              successBox.classList.add("show");
+              form.reset();
+              successBox.scrollIntoView({
+                behavior: "smooth",
+                block: "nearest",
+              });
+            })
+            .catch(function (err) {
+              tampilError(
+                err instanceof TypeError
+                  ? "Server belum aktif. Pesan belum terkirim, coba lagi nanti."
+                  : err.message,
+              );
+            })
+            .then(function () {
+              submitBtn.disabled = false;
+            });
         });
       })();
     </script>
