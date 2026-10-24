@@ -96,7 +96,7 @@ async function muatPesanApi() {
         email: p.email,
         wa: "",
         pesan: p.pesan,
-        kategori: p.kategori,
+        _kat: p.kategori ? { kategori: p.kategori, skor: p.skor } : null,
         tanggal: p.tanggal,
         dibaca: p.dibaca,
       })),
@@ -395,19 +395,25 @@ function kategoriOf(g) {
 }
 
 async function muatKategoriModel() {
+  // Pesan dari form sudah dikategorikan server saat dikirim; sisanya (data contoh) dikategorikan di sini.
+  const target = guestbook.filter((g) => !g._kat);
+  if (target.length === 0) {
+    modelAktif = true;
+    return;
+  }
   try {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 2500);
     const r = await fetch(API_KATEGORI, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ pesan: guestbook.map((g) => g.pesan) }),
+      body: JSON.stringify({ pesan: target.map((g) => g.pesan) }),
       signal: ctrl.signal,
     });
     clearTimeout(timer);
     if (!r.ok) throw new Error("API " + r.status);
     const { hasil } = await r.json();
-    guestbook.forEach((g, i) => {
+    target.forEach((g, i) => {
       g._kat = { kategori: hasil[i].kategori, skor: hasil[i].skor };
     });
     modelAktif = true;

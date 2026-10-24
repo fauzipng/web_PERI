@@ -17,12 +17,14 @@ Pengaturan koneksi ada di file .env (salin dari .env.example).
 """
 import hashlib
 import hmac
+import json
 import os
 import re
 import secrets
 import smtplib
 import sys
 import time
+import urllib.request
 from datetime import datetime, timedelta, timezone
 from email.message import EmailMessage
 from functools import wraps
@@ -43,6 +45,8 @@ DB_USER = os.environ.get("PERI_DB_USER", "root")
 DB_PASS = os.environ.get("PERI_DB_PASS", "")
 DB_NAME = os.environ.get("PERI_DB_NAME", "peri")
 
+NLP_URL = os.environ.get("PERI_NLP_URL", "http://127.0.0.1:5000/api/kategori")
+
 SMTP_HOST = os.environ.get("SMTP_HOST", "")
 SMTP_PORT = int(os.environ.get("SMTP_PORT", "587") or 587)
 SMTP_USER = os.environ.get("SMTP_USER", "")
@@ -55,6 +59,7 @@ KODE_MAKS_SALAH = 5
 SANDI_MIN, SANDI_MAKS = 8, 30
 LOGIN_MAKS_GAGAL, LOGIN_KUNCI = 5, 5 * 60   # 5 kali gagal -> tunggu 5 menit
 KIRIM_MAKS_PER_IP, KIRIM_JENDELA = 10, 10 * 60
+UMPAN_MAKS_PER_IP, UMPAN_JENDELA = 5, 10 * 60   # 5 umpan balik per 10 menit per IP
 
 EMAIL_RE = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
 ORIGIN_RE = re.compile(r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$")
@@ -136,7 +141,7 @@ def siapkan_database():
             # Pastikan tabelnya benar-benar ada, dan tampilkan di terminal.
             cur.execute("SHOW TABLES")
             ada = {str(list(b.values())[0]).lower() for b in cur.fetchall()}
-            hilang = {"users", "kode_verifikasi"} - ada
+            hilang = {"users", "kode_verifikasi", "buku_tamu"} - ada
             if hilang:
                 raise RuntimeError(
                     f"Tabel {', '.join(sorted(hilang))} gagal dibuat di database '{DB_NAME}'. "
@@ -431,6 +436,82 @@ def saya():
 def cek_admin():
     """Dipakai penjaga halaman web admin. Endpoint admin lain memakai dekorator yang sama."""
     return jsonify({"user": user_publik(g.user)})
+
+
+# ------------------------------------------------------------------ umpan balik (buku tamu)
+def tentukan_kategori(pesan: str):
+    """Minta kategori ke API NLP (peri-nlp, python api.py). Gagal -> (None, None); pesan tetap disimpan."""
+    try:
+        req = urllib.request.Request(
+            NLP_URL,
+            data=json.dumps({"pesan": [pesan]}).encode(),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=3) as resp:
+            hasil = json.load(resp)["hasil"][0]
+        return str(hasil["kategori"]), float(hasil["skor"])
+    except Exception as e:
+        print(f"[NLP] Kategori tidak dapat ditentukan (jalankan peri-nlp/api.py): {e!r}", flush=True)
+        return None, None
+
+
+@app.post("/api/buku-tamu")
+def kirim_umpan_balik():
+    """Dipakai form umpan balik web lembaga. Kategori ditentukan otomatis oleh model NLP."""
+    d = data_json()
+    nama = str(d.get("nama") or "").strip()
+    email = bersihkan_email(d.get("email"))
+    pesan = str(d.get("pesan") or "").strip()
+    if not nama or len(nama) > 100:
+        return galat("Nama wajib diisi (maksimal 100 karakter).")
+    if not email:
+        return galat("Masukkan email yang valid.")
+    if not 5 <= len(pesan) <= 2000:
+        return galat("Pesan harus 5–2000 karakter.")
+
+    kunci = ("umpan", request.remote_addr or "?")
+    if _sisa_tunggu(kunci, UMPAN_MAKS_PER_IP, UMPAN_JENDELA):
+        return galat("Terlalu banyak pesan dikirim. Coba lagi beberapa menit lagi.", 429)
+    _catat(kunci)
+
+    kategori, skor = tentukan_kategori(pesan)
+    with db().cursor() as cur:
+        cur.execute(
+            "INSERT INTO buku_tamu (nama, email, pesan, kategori, skor) VALUES (%s,%s,%s,%s,%s)",
+            (nama, email, pesan, kategori, skor),
+        )
+    return jsonify({"ok": True}), 201
+
+
+@app.get("/api/buku-tamu")
+@peran_wajib("admin")
+def daftar_umpan_balik():
+    with db().cursor() as cur:
+        cur.execute(
+            "SELECT id, nama, email, pesan, kategori, skor, dibaca, created_at "
+            "FROM buku_tamu ORDER BY id DESC LIMIT 500"
+        )
+        baris = cur.fetchall()
+    return jsonify({"pesan": [
+        {
+            "id": b["id"], "nama": b["nama"], "email": b["email"], "pesan": b["pesan"],
+            "kategori": b["kategori"], "skor": b["skor"], "dibaca": bool(b["dibaca"]),
+            "tanggal": b["created_at"].strftime("%Y-%m-%d"),
+        }
+        for b in baris
+    ]})
+
+
+@app.post("/api/buku-tamu/<int:pid>/dibaca")
+@peran_wajib("admin")
+def tandai_dibaca(pid: int):
+    nilai = data_json().get("dibaca")
+    if not isinstance(nilai, bool):
+        return galat("Nilai 'dibaca' harus true atau false.")
+    with db().cursor() as cur:
+        cur.execute("UPDATE buku_tamu SET dibaca=%s WHERE id=%s", (1 if nilai else 0, pid))
+    return jsonify({"ok": True})
 
 
 if __name__ == "__main__":
