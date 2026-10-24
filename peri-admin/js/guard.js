@@ -40,12 +40,13 @@
     wrap.appendChild(avatar);
   }
 
-  fetch(API + "/api/auth/me", { credentials: "include" })
+  // Server yang menentukan: /api/admin/cek hanya menjawab 200 untuk role admin.
+  fetch(API + "/api/admin/cek", { credentials: "include" })
     .then(function (res) {
       return res.ok ? res.json() : null;
     })
     .then(function (data) {
-      if (!data || !data.user || data.user.role !== "admin") return tolak();
+      if (!data || !data.user) return tolak();
       hide.remove();
       document.addEventListener("DOMContentLoaded", function () {
         pasangKeluar(data.user);

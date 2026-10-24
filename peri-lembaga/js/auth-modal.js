@@ -121,7 +121,7 @@
 
   var overlay, lastFocus;
 
-  /* ---------- Hubungan ke API autentikasi (peri-auth, port 5001) ---------- */
+  /* ---------- Hubungan ke API autentikasi (peri-backend, port 5001) ---------- */
   var API = "http://" + (location.hostname || "127.0.0.1") + ":5001";
   var ADMIN_URL = "../peri-admin/dashboard.html";
 
@@ -152,7 +152,7 @@
           ok: false,
           status: 0,
           data: {},
-          error: "Server belum aktif. Jalankan peri-auth (python app.py).",
+          error: "Server belum aktif. Jalankan peri-backend (python app.py).",
         };
       });
   }
@@ -220,7 +220,7 @@
     api("/api/auth/kirim-kode", "POST", { email: email }).then(function (r) {
       setMsg(
         msg,
-        r.ok ? "Kode verifikasi dikirim ke email Anda." : r.error,
+        r.ok ? r.data.pesan || "Kode verifikasi dikirim." : r.error,
         r.ok,
       );
       setTimeout(
