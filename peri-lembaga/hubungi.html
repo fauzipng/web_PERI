@@ -147,22 +147,6 @@
                 </div>
 
                 <div class="field">
-                  <label for="fb-kategori">Kategori</label>
-                  <select id="fb-kategori" name="kategori" required>
-                    <option value="" disabled selected>
-                      Pilih kategori umpan balik
-                    </option>
-                    <option value="saran">Saran</option>
-                    <option value="kritik">Kritik</option>
-                    <option value="pertanyaan">Pertanyaan Program</option>
-                    <option value="kerjasama">
-                      Kerja Sama &amp; Kolaborasi
-                    </option>
-                    <option value="lainnya">Lainnya</option>
-                  </select>
-                </div>
-
-                <div class="field">
                   <label for="fb-pesan">Pesan</label>
                   <textarea
                     id="fb-pesan"
@@ -254,7 +238,6 @@
             body: JSON.stringify({
               nama: form.nama.value.trim(),
               email: form.email.value.trim(),
-              kategori: form.kategori.value,
               pesan: form.pesan.value.trim(),
             }),
           })

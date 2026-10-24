@@ -1,11 +1,10 @@
-
 import re
 
 SLANG = {"gak": "tidak", "nggak": "tidak", "ga": "tidak", "tdk": "tidak", "bgt": "banget",
          "yg": "yang", "dgn": "dengan", "utk": "untuk", "krn": "karena", "sy": "saya",
          "makasih": "terima kasih", "thanks": "terima kasih", "udah": "sudah", "blm": "belum",
          "bs": "bisa", "tp": "tapi", "mantul": "mantap"}
-# Kata negasi sengaja TIDAK dibuang agar "tidak bagus" tetap terdeteksi negatif.
+# Kata negasi sengaja TIDAK dibuang agar frasa seperti "tidak sesuai" tetap terbaca.
 STOPWORDS = set("yang dan di ke dari untuk dengan pada dalam ini itu atau saya kami kita kamu "
                 "anda dia mereka adalah ialah akan juga saja sudah lagi sangat para oleh itu "
                 "agar supaya karena sebagai bahwa ada".split())
@@ -36,6 +35,7 @@ except Exception:
 
 def clean(text: str) -> str:
     text = text.lower()
+    text = text.replace("?", " qmark ")  # tanda tanya = petunjuk kuat untuk kategori pertanyaan
     text = re.sub(r"https?://\S+|\S+@\S+", " ", text)
     text = re.sub(r"[^a-z\s]", " ", text)
     text = re.sub(r"(.)\1{2,}", r"\1\1", text)  # "bagusss" -> "baguss"
@@ -54,6 +54,6 @@ def preprocess(text: str) -> list[str]:
 
 
 def bigram_analyzer(text: str) -> list[str]:
-    """Unigram + bigram (menangkap frasa seperti 'tidak_bagus'). Harus di modul ini agar model bisa dimuat ulang."""
+    """Unigram + bigram (menangkap frasa seperti 'tidak_sesuai'). Harus di modul ini agar model bisa dimuat ulang."""
     t = preprocess(text)
     return t + [a + "_" + b for a, b in zip(t, t[1:])]

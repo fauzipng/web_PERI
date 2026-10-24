@@ -375,12 +375,6 @@ const KATEGORI_LABEL = {
   kerjasama: "Kerja Sama & Kolaborasi",
   lainnya: "Lainnya",
 };
-const SENT_META = {
-  positif: { cls: "tag-pos", ikon: "▲", teks: "Positif" },
-  netral: { cls: "tag-neu", ikon: "●", teks: "Netral" },
-  negatif: { cls: "tag-neg", ikon: "▼", teks: "Negatif" },
-};
-
 function esc(s) {
   return String(s).replace(
     /[&<>"']/g,
@@ -391,36 +385,30 @@ function esc(s) {
   );
 }
 
-// ----- Sentimen -----
-// Pertanyaan dan permintaan kerja sama tidak dinilai sentimennya: otomatis Netral (berdasarkan kategori).
-// Kategori lain (saran, kritik, lainnya) dinilai oleh model Naive Bayes lewat API Python.
-const API_SENTIMEN = "http://127.0.0.1:5000/api/sentimen";
-const KATEGORI_NETRAL = ["pertanyaan", "kerjasama"];
+// ----- Kategori otomatis (NLP) -----
+// Kategori setiap pesan ditentukan oleh model klasifikasi lewat API Python (jalankan: python api.py, port 5000).
+const API_KATEGORI = "http://127.0.0.1:5000/api/kategori";
 let modelAktif = false;
 
-function sentimenOf(g) {
-  if (KATEGORI_NETRAL.includes(g.kategori))
-    return { label: "netral", skor: null, sumber: "kategori" };
-  if (g._sent) return g._sent;
-  return { label: null, skor: null, sumber: "belum" }; // API belum/tidak aktif
+function kategoriOf(g) {
+  return g._kat ? g._kat.kategori : null;
 }
 
-async function muatSentimenModel() {
-  const target = guestbook.filter((g) => !KATEGORI_NETRAL.includes(g.kategori));
+async function muatKategoriModel() {
   try {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 2500);
-    const r = await fetch(API_SENTIMEN, {
+    const r = await fetch(API_KATEGORI, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ pesan: target.map((g) => g.pesan) }),
+      body: JSON.stringify({ pesan: guestbook.map((g) => g.pesan) }),
       signal: ctrl.signal,
     });
     clearTimeout(timer);
     if (!r.ok) throw new Error("API " + r.status);
     const { hasil } = await r.json();
-    target.forEach((g, i) => {
-      g._sent = { label: hasil[i].label, skor: hasil[i].skor, sumber: "model" };
+    guestbook.forEach((g, i) => {
+      g._kat = { kategori: hasil[i].kategori, skor: hasil[i].skor };
     });
     modelAktif = true;
   } catch (e) {
@@ -428,18 +416,13 @@ async function muatSentimenModel() {
   }
 }
 
-const gbFilter = { q: "", kategori: "", sentimen: "" };
+const gbFilter = { q: "", kategori: "" };
 
-function sentimenTagHtml(g) {
-  const s = sentimenOf(g);
-  if (!s.label)
-    return `<span class="tag" title="Jalankan python api.py agar sentimen dianalisis">Belum dianalisis</span>`;
-  const sm = SENT_META[s.label];
-  const tip =
-    s.sumber === "model"
-      ? `Model Naive Bayes, keyakinan: ${s.skor}`
-      : "Pertanyaan/permintaan: tidak dinilai sentimennya";
-  return `<span class="tag ${sm.cls}" title="${tip}">${sm.ikon} ${sm.teks}</span>`;
+function kategoriTagHtml(g) {
+  const k = kategoriOf(g);
+  if (!k)
+    return `<span class="tag" title="Jalankan python api.py agar kategori ditentukan otomatis">Belum dianalisis</span>`;
+  return `<span class="tag" title="Ditentukan model, keyakinan: ${g._kat.skor}">${esc(KATEGORI_LABEL[k] || "Lainnya")}</span>`;
 }
 
 function guestbookItemHtml(g) {
@@ -451,8 +434,7 @@ function guestbookItemHtml(g) {
       </div>
       <p class="gb-message">${esc(g.pesan)}</p>
       <div class="gb-tags">
-        ${sentimenTagHtml(g)}
-        <span class="tag">${esc(KATEGORI_LABEL[g.kategori] || "Lainnya")}</span>
+        ${kategoriTagHtml(g)}
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;">
         <span class="gb-meta">${[g.email !== "-" ? esc(g.email) : "", esc(g.wa)].filter(Boolean).join(" · ")}</span>
@@ -467,9 +449,7 @@ function gbFiltered() {
   const q = gbFilter.q.trim().toLowerCase();
   return guestbook.filter((g) => {
     if (q && !(g.nama + " " + g.pesan).toLowerCase().includes(q)) return false;
-    if (gbFilter.kategori && g.kategori !== gbFilter.kategori) return false;
-    if (gbFilter.sentimen && sentimenOf(g).label !== gbFilter.sentimen)
-      return false;
+    if (gbFilter.kategori && kategoriOf(g) !== gbFilter.kategori) return false;
     return true;
   });
 }
@@ -484,7 +464,7 @@ function renderGuestbook() {
   const rows = gbFiltered();
   const cnt = document.getElementById("gb-count");
   if (cnt)
-    cnt.textContent = `${rows.length} dari ${guestbook.length} pesan · sentimen: ${modelAktif ? "model aktif" : "model belum aktif"}`;
+    cnt.textContent = `${rows.length} dari ${guestbook.length} pesan · kategori otomatis: ${modelAktif ? "model aktif" : "model belum aktif"}`;
   if (rows.length === 0) {
     list.innerHTML = `<div class="empty">Tidak ada pesan yang cocok dengan filter.</div>`;
     return;
@@ -525,12 +505,8 @@ async function initBukuTamu() {
     gbFilter.kategori = e.target.value;
     renderGuestbook();
   });
-  document.getElementById("gb-f-sentimen").addEventListener("change", (e) => {
-    gbFilter.sentimen = e.target.value;
-    renderGuestbook();
-  });
   await muatPesanApi();
-  await muatSentimenModel();
+  await muatKategoriModel();
   renderGuestbook();
   updateGuestbookCount();
 }

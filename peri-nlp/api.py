@@ -1,11 +1,11 @@
-
 from pathlib import Path
 import joblib
 from flask import Flask, jsonify, request
 
-MODEL_PATH = Path(__file__).resolve().parent / "nb_sentimen.joblib"
+MODEL_PATH = Path(__file__).resolve().parent / "model_kategori.joblib"
 model = joblib.load(MODEL_PATH)
 app = Flask(__name__)
+MAKS_PESAN, MAKS_PANJANG = 500, 2000
 
 
 @app.after_request
@@ -22,8 +22,9 @@ def health():
     return jsonify(status="ok", kelas=list(model.classes_))
 
 
-@app.route("/api/sentimen", methods=["POST", "OPTIONS"])
-def sentimen():
+@app.route("/api/kategori", methods=["POST", "OPTIONS"])
+def kategori():
+    """Menentukan kategori umpan balik: saran, kritik, pertanyaan, kerjasama, atau lainnya."""
     if request.method == "OPTIONS":
         return "", 204
     data = request.get_json(force=True, silent=True) or {}
@@ -32,13 +33,15 @@ def sentimen():
         pesan = [pesan]
     if not isinstance(pesan, list) or not all(isinstance(t, str) for t in pesan):
         return jsonify(error="'pesan' harus berupa teks atau daftar teks"), 400
+    if len(pesan) > MAKS_PESAN or any(len(t) > MAKS_PANJANG for t in pesan):
+        return jsonify(error="Terlalu banyak atau terlalu panjang"), 400
     if not pesan:
         return jsonify(hasil=[])
     hasil = []
-    for t, p in zip(pesan, model.predict_proba(pesan)):
+    for p in model.predict_proba(pesan):
         i = int(p.argmax())
-        hasil.append({"label": str(model.classes_[i]), "skor": round(float(p[i]), 3)})
-    return jsonify(hasil=hasil, model="naive_bayes")
+        hasil.append({"kategori": str(model.classes_[i]), "skor": round(float(p[i]), 3)})
+    return jsonify(hasil=hasil, model="klasifikasi_kategori")
 
 
 if __name__ == "__main__":
