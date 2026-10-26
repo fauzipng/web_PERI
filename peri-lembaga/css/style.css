@@ -18,6 +18,8 @@
   --radius-xl: 35px;
   --shadow-card: 0 10px 30px rgba(80, 15, 17, 0.12);
   --max-width: 1200px;
+  --navbar-h: 92px;
+  --logo-h: 76px;
 }
 
 * {
@@ -87,24 +89,28 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 32px;
-  max-width: var(--max-width);
+  height: var(--navbar-h);
+  padding: 0 clamp(20px, 3vw, 56px);
   margin: 0 auto;
 }
 
 .navbar-logo {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-family: "Poppins", sans-serif;
+  gap: 4px;
+  font-family: Georgia, "Times New Roman", serif;
   font-weight: 700;
-  font-size: 20px;
+  font-size: 17px;
+  line-height: 1.15;
   color: var(--brand-red);
+  text-shadow: 2px 2px 3px rgba(0, 0, 0, 0.2);
 }
 
 .navbar-logo img {
-  width: 36px;
-  height: 36px;
+  height: var(--logo-h);
+  width: auto;
+  /* File logo punya ruang kosong di sisi kanan; ditarik agar teks mendekat */
+  margin-right: calc(var(--logo-h) * -0.3);
 }
 
 .navbar-links {
@@ -1488,10 +1494,11 @@ button {
 /* ---------- Beranda: hero (foto penuh, satu CTA) ---------- */
 .beranda-hero {
   background: linear-gradient(135deg, var(--maroon-deep), var(--maroon));
-  border-radius: var(--radius-lg);
   overflow: hidden;
   position: relative;
-  height: 460px;
+  /* Pas satu layar: tinggi layar dikurangi tinggi navbar */
+  height: calc(100vh - var(--navbar-h) - 1px);
+  height: calc(100svh - var(--navbar-h) - 1px);
   min-height: 460px;
   display: flex;
   align-items: center;
@@ -1502,6 +1509,7 @@ button {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center 30%;
   z-index: 0;
 }
 .beranda-hero::after {
@@ -1519,20 +1527,20 @@ button {
 .beranda-hero-content {
   position: relative;
   z-index: 2;
-  padding: 56px 64px;
-  max-width: 760px;
+  padding: 56px clamp(24px, 5vw, 96px);
+  max-width: 900px;
   color: #fff;
 }
 .beranda-hero-content h1 {
   color: #fff;
   font-family: "Poppins", sans-serif;
   font-weight: 700;
-  font-size: 42px;
+  font-size: clamp(36px, 3.4vw, 60px);
   line-height: 1.2;
   margin-bottom: 18px;
 }
 .beranda-hero-content p {
-  font-size: 18px;
+  font-size: clamp(16px, 1.3vw, 22px);
   line-height: 1.6;
   margin-bottom: 28px;
   max-width: 540px;
@@ -1941,6 +1949,20 @@ button {
   }
 }
 @media (max-width: 560px) {
+  :root {
+    --navbar-h: 72px;
+    --logo-h: 50px;
+  }
+  .navbar-logo {
+    font-size: 12px;
+  }
+  .navbar-actions {
+    gap: 6px;
+  }
+  .navbar-actions .btn {
+    padding: 7px 12px;
+    font-size: 13px;
+  }
   .program-grid {
     grid-template-columns: 1fr;
   }
