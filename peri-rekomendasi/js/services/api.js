@@ -9,6 +9,11 @@ import { evaluateAll } from '../../recommendation/evaluation.js';
 const KEY = { result: 'peri_last_result', eval: 'peri_eval_data', db: 'peri_db_log' };
 const read = (k, fb) => { try { return JSON.parse(localStorage.getItem(k)) ?? fb; } catch { return fb; } };
 const write = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+// Hasil analisis peserta hanya berlaku selama tab terbuka (sessionStorage), agar tidak muncul sebagai
+// "profil Anda" pada kunjungan berikutnya sebelum peserta mengisi form.
+const readSession = k => { try { return JSON.parse(sessionStorage.getItem(k)); } catch { return null; } };
+const writeSession = (k, v) => sessionStorage.setItem(k, JSON.stringify(v));
+try { localStorage.removeItem(KEY.result); } catch {} // buang sisa hasil lama dari versi sebelumnya
 
 // GET /api/programs
 export const getPrograms = () => PROGRAMS;
@@ -49,11 +54,11 @@ export function analyzeProfile(profile) {
   const active = getActiveMethod();
   const all = Object.fromEntries(METHODS.map(m => [m, recommend(profile, m)]));
   const result = { profile, ...active, ...all[active.method], all, created_at: new Date().toISOString() };
-  write(KEY.result, result);
+  writeSession(KEY.result, result);
   const log = read(KEY.db, []);
   log.push({ participant: profile, cosine: all.cosine.recommendations.slice(0, 5).map(r => [r.program_id, r.score, r.rank]),
     euclidean: all.euclidean.recommendations.slice(0, 5).map(r => [r.program_id, r.score, r.rank]), created_at: result.created_at });
   write(KEY.db, log);
   return result;
 }
-export const getLastResult = () => read(KEY.result, null);
+export const getLastResult = () => readSession(KEY.result);
