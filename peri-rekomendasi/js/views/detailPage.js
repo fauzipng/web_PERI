@@ -7,7 +7,7 @@ export function view(id) {
   const rec = getLastResult()?.recommendations.find(r => r.program_id === p.id);   // ada hanya jika user sudah isi profil
   const fit = rec && rec.score > 0 ? `
     <aside class="card fit"><span class="badge">Program ini sesuai dengan profil Anda</span>
-    <p class="score-sm">${pct(rec.score)} tingkat kesesuaian</p><h3>Mengapa program ini direkomendasikan?</h3>${checkList(rec.checks)}<p class="reason">${rec.reason}</p></aside>` : '';
+    <p class="score-sm">${pct(rec.score)} tingkat kesesuaian <span class="muted">(berdasarkan profil yang Anda isi tadi)</span></p><h3>Mengapa program ini direkomendasikan?</h3>${checkList(rec.checks)}<p class="reason">${rec.reason}</p></aside>` : '';
   const row = (k, v) => `<div class="detail__row"><dt>${k}</dt><dd>${v}</dd></div>`;
   return { title: p.nama_program, html: `
   <section class="container section detail">

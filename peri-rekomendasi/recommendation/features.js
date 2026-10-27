@@ -1,5 +1,6 @@
 // Definisi ruang fitur. SATU sumber kebenaran untuk profil DAN program,
 // sehingga Cosine & Euclidean memakai dimensi yang persis sama.
+// Opsi minat & tujuan disusun dari tujuan/deskripsi 10 program pada Company Profile PERI.
 export const FEATURE_GROUPS = {
   age: { label: 'Usia', type: 'single', options: [
     { id: '<=20', label: '20 tahun ke bawah' }, { id: '21-35', label: '21–35 tahun' },
@@ -11,14 +12,16 @@ export const FEATURE_GROUPS = {
   economic: { label: 'Kondisi ekonomi', type: 'single', options: [
     { id: 'kurang_mampu', label: 'Kurang mampu' }, { id: 'menengah', label: 'Menengah' }, { id: 'mapan', label: 'Mapan' } ] },
   interests: { label: 'Minat', type: 'multi', options: [
-    { id: 'pemasaran_digital', label: 'Pemasaran digital' }, { id: 'kewirausahaan', label: 'Kewirausahaan' },
-    { id: 'keterampilan_tangan', label: 'Keterampilan tangan' }, { id: 'literasi_digital', label: 'Literasi digital' },
-    { id: 'kesetaraan_gender', label: 'Kesetaraan & hak perempuan' }, { id: 'kepemimpinan', label: 'Kepemimpinan' },
-    { id: 'sosial_lingkungan', label: 'Kegiatan sosial & lingkungan' }, { id: 'kesehatan_keluarga', label: 'Kesehatan keluarga' } ] },
+    { id: 'kesehatan_mental', label: 'Pemulihan diri & kesehatan mental' }, { id: 'kewirausahaan', label: 'Bisnis & kewirausahaan' },
+    { id: 'pemasaran_digital', label: 'Pemasaran digital & desain' }, { id: 'jejaring_kolaborasi', label: 'Jejaring & kolaborasi' },
+    { id: 'kesehatan_parenting', label: 'Kesehatan, parenting & reproduksi' }, { id: 'pendidikan_anak', label: 'Pendidikan anak perempuan' },
+    { id: 'literasi_advokasi', label: 'Literasi & advokasi' }, { id: 'keuangan_usaha', label: 'Keuangan & permodalan usaha' },
+    { id: 'sosial_lingkungan', label: 'Kegiatan sosial & lingkungan' }, { id: 'karya_kreatif', label: 'Karya kreatif & pameran' } ] },
   goals: { label: 'Tujuan', type: 'multi', options: [
-    { id: 'tambah_keterampilan', label: 'Menambah keterampilan' }, { id: 'peluang_usaha', label: 'Membuka peluang usaha' },
-    { id: 'penghasilan_tambahan', label: 'Mendapat penghasilan tambahan' }, { id: 'jejaring', label: 'Memperluas jejaring' },
-    { id: 'pengembangan_diri', label: 'Mengembangkan diri' }, { id: 'kontribusi_sosial', label: 'Berkontribusi untuk sosial' } ] },
+    { id: 'pemulihan_diri', label: 'Memulihkan diri & menjaga kesehatan' }, { id: 'kemandirian_ekonomi', label: 'Mencapai kemandirian ekonomi' },
+    { id: 'tambah_keterampilan', label: 'Menambah keterampilan' }, { id: 'perluas_jejaring', label: 'Memperluas jejaring' },
+    { id: 'akses_permodalan', label: 'Mendapat akses permodalan' }, { id: 'bantuan_pendidikan_anak', label: 'Bantuan pendidikan untuk anak' },
+    { id: 'kontribusi_sosial', label: 'Berkontribusi untuk sosial' }, { id: 'promosi_karya', label: 'Mempromosikan hasil karya' } ] },
 };
 
 // Bobot tiap kelompok fitur (default sama rata). Ubah di sini untuk eksperimen penelitian.

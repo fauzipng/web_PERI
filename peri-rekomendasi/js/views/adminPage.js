@@ -12,7 +12,7 @@ function draw(root) {
   el.innerHTML = `
   <h1 class="title title--sm">Recommendation Model Evaluation</h1>
   <p class="note">Halaman untuk admin/peneliti. TODO: lindungi dengan login dashboard admin kelompok.</p>
-  ${ev.isDemo ? '<p class="warn">Data uji dan ground truth saat ini adalah DATA CONTOH, bukan penilaian pengurus PERI. Impor data asli di bagian bawah.</p>' : ''}
+  ${ev.isDemo ? '<p class="warn">Data uji dan ground truth saat ini adalah DATA CONTOH, bukan penilaian pengurus PERI.</p>' : ''}
   <div class="grid grid--3">
     <div class="card stat"><span>Dataset</span><strong>${getPrograms().length} program</strong></div>
     <div class="card stat"><span>Jumlah profil uji</span><strong>${ev.numProfiles}</strong></div>

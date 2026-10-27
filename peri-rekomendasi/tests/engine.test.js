@@ -11,7 +11,7 @@ assert.equal(calculate_euclidean_distance([0, 0], [3, 4]), 5);
 const rel = new Set([2, 9]);
 assert.equal(evaluate_precision_at_n([{ program_id: 2 }, { program_id: 5 }, { program_id: 9 }], rel, 3), 2 / 3);
 
-const p = { age: 28, employment_status: 'irt', economic_condition: 'kurang_mampu', interests: ['keterampilan_tangan'], goals: ['penghasilan_tambahan'] };
+const p = { age: 28, employment_status: 'irt', economic_condition: 'kurang_mampu', interests: ['kewirausahaan'], goals: ['kemandirian_ekonomi'] };
 for (const m of ['cosine', 'euclidean']) {
   const r = recommendPrograms(p, m, 3);
   assert.equal(r.length, 3); assert.equal(r[0].ranking, 1);
