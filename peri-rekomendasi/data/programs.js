@@ -1,0 +1,77 @@
+// =====================================================================
+// DATA PROGRAM PERI
+// TODO: Replace with official PERI program data
+// Semua isi di bawah ini PLACEHOLDER (bukan data resmi PERI). Nama program
+// diambil dari prototype kelompok; deskripsi & kriteria hanya contoh.
+// `kriteria` memakai id fitur dari recommendation/features.js.
+// =====================================================================
+const SEMUA_USIA = ['<=20', '21-35', '36-50', '>50'];
+const SEMUA_STATUS = ['pelajar', 'irt', 'karyawan', 'wirausaha', 'belum_bekerja', 'lainnya'];
+const SEMUA_EKONOMI = ['kurang_mampu', 'menengah', 'mapan'];
+
+export const PROGRAMS = [
+  { id: 1, nama_program: 'Rangkul Berdaya', kategori: 'Pemberdayaan', placeholder: true,
+    deskripsi: '[PLACEHOLDER] Pendampingan pemberdayaan ekonomi perempuan melalui keterampilan dan usaha rumahan.',
+    target_sasaran: '[PLACEHOLDER] Perempuan dewasa yang ingin memulai penghasilan mandiri.',
+    tujuan: '[PLACEHOLDER] Self Healing, Memulihkan Luka, Meraih Asa Perempuan Kuat.',
+    output: '[PLACEHOLDER] Keseimbangan kesehatan mental/emosi & kemandirian ekonomi..',
+    periode: '[PLACEHOLDER] Mingguan',
+    kriteria: { age: ['21-35', '36-50', '>50'], employment: ['irt', 'belum_bekerja', 'wirausaha'],
+      economic: ['kurang_mampu', 'menengah'], interests: ['keterampilan_tangan', 'kewirausahaan', 'kesehatan_keluarga'],
+      goals: ['penghasilan_tambahan', 'tambah_keterampilan', 'peluang_usaha'] } },
+  { id: 2, nama_program: 'Edukasi Dunia Perempuan', kategori: 'Edukasi', placeholder: true,
+    deskripsi: '[PLACEHOLDER] Kelas edukasi kesetaraan, kepemimpinan, dan pengembangan diri perempuan.',
+    target_sasaran: '[PLACEHOLDER] Pelajar, mahasiswi, dan perempuan muda.',
+    tujuan: '[PLACEHOLDER] Menambah wawasan dan kepercayaan diri peserta.',
+    output: '[PLACEHOLDER] Sertifikat partisipasi dan jejaring alumni.',
+    periode: '[PLACEHOLDER] 2 bulan',
+    kriteria: { age: ['<=20', '21-35'], employment: ['pelajar', 'belum_bekerja', 'karyawan'],
+      economic: SEMUA_EKONOMI, interests: ['kesetaraan_gender', 'kepemimpinan'],
+      goals: ['pengembangan_diri', 'jejaring'] } },
+  { id: 3, nama_program: 'Digital Skill Academy', kategori: 'Digital', placeholder: true,
+    deskripsi: '[PLACEHOLDER] Pelatihan literasi digital dan pemasaran online untuk perempuan.',
+    target_sasaran: '[PLACEHOLDER] Perempuan usia produktif yang ingin menguasai keterampilan digital.',
+    tujuan: '[PLACEHOLDER] Meningkatkan keterampilan digital dan peluang usaha.',
+    output: '[PLACEHOLDER] Akun usaha online dan portofolio konten.',
+    periode: '[PLACEHOLDER] 6 minggu',
+    kriteria: { age: ['<=20', '21-35', '36-50'], employment: ['pelajar', 'wirausaha', 'karyawan', 'belum_bekerja'],
+      economic: ['menengah', 'mapan'], interests: ['pemasaran_digital', 'literasi_digital', 'kewirausahaan'],
+      goals: ['tambah_keterampilan', 'peluang_usaha'] } },
+  { id: 4, nama_program: 'Pelatihan Keterampilan Tangan', kategori: 'Keterampilan', placeholder: true,
+    deskripsi: '[PLACEHOLDER] Pelatihan kerajinan dan keterampilan tangan bernilai jual.',
+    target_sasaran: '[PLACEHOLDER] Perempuan yang ingin belajar keterampilan praktis.',
+    tujuan: '[PLACEHOLDER] Membekali peserta keterampilan produksi sederhana.',
+    output: '[PLACEHOLDER] Produk kerajinan hasil pelatihan.',
+    periode: '[PLACEHOLDER] 1 bulan',
+    kriteria: { age: ['21-35', '36-50', '>50'], employment: ['irt', 'belum_bekerja', 'wirausaha'],
+      economic: ['kurang_mampu', 'menengah'], interests: ['keterampilan_tangan', 'kesehatan_keluarga'],
+      goals: ['penghasilan_tambahan', 'tambah_keterampilan'] } },
+  { id: 5, nama_program: 'Pelatihan Kewirausahaan UMKM', kategori: 'Kewirausahaan', placeholder: true,
+    deskripsi: '[PLACEHOLDER] Pelatihan mengelola dan mengembangkan usaha kecil.',
+    target_sasaran: '[PLACEHOLDER] Pelaku atau calon pelaku UMKM perempuan.',
+    tujuan: '[PLACEHOLDER] Memperkuat kapasitas usaha dan jejaring bisnis.',
+    output: '[PLACEHOLDER] Rencana usaha dan akses jejaring UMKM.',
+    periode: '[PLACEHOLDER] 2 bulan',
+    kriteria: { age: ['21-35', '36-50'], employment: ['wirausaha', 'irt', 'karyawan'],
+      economic: SEMUA_EKONOMI, interests: ['kewirausahaan', 'pemasaran_digital'],
+      goals: ['peluang_usaha', 'jejaring', 'penghasilan_tambahan'] } },
+  { id: 6, nama_program: 'Gerakan Sosial dan Lingkungan', kategori: 'Sosial', placeholder: true,
+    deskripsi: '[PLACEHOLDER] Kegiatan sosial, relawan, dan kepedulian lingkungan.',
+    target_sasaran: '[PLACEHOLDER] Perempuan dari berbagai latar belakang yang ingin berkontribusi.',
+    tujuan: '[PLACEHOLDER] Mendorong partisipasi perempuan dalam kegiatan sosial.',
+    output: '[PLACEHOLDER] Aksi sosial dan jejaring relawan.',
+    periode: '[PLACEHOLDER] Berkelanjutan',
+    kriteria: { age: SEMUA_USIA, employment: SEMUA_STATUS, economic: SEMUA_EKONOMI,
+      interests: ['sosial_lingkungan', 'kepemimpinan', 'kesetaraan_gender'],
+      goals: ['kontribusi_sosial', 'jejaring'] } },
+  { id: 7, nama_program: '', kategori: 'Digital', placeholder: true,
+    deskripsi: '[PLACEHOLDER] Kegiatan sosial, relawan, dan kepedulian lingkungan.',
+    target_sasaran: '[PLACEHOLDER] Perempuan dari berbagai latar belakang yang ingin berkontribusi.',
+    tujuan: '[PLACEHOLDER] Mendorong partisipasi perempuan dalam kegiatan sosial.',
+    output: '[PLACEHOLDER] Aksi sosial dan jejaring relawan.',
+    periode: '[PLACEHOLDER] Berkelanjutan',
+    kriteria: { age: SEMUA_USIA, employment: SEMUA_STATUS, economic: SEMUA_EKONOMI,
+      interests: ['sosial_lingkungan', 'kepemimpinan', 'kesetaraan_gender'],
+      goals: ['kontribusi_sosial', 'jejaring'] } },
+      
+];
